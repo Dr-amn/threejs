@@ -23,30 +23,48 @@ const debugObject = {}
 
 
 
+
 // TEXTURES
 const loadingManager = new THREE.LoadingManager()
 
-loadingManager.onStart = () =>{
-    console.log('onStart')
-}
-loadingManager.onLoad = () =>{
-    console.log('onLoad')
-}
-loadingManager.onProgress = () =>{
-    console.log('onProgress')
-}
-loadingManager.onError = () =>{
-    console.log('onError')
-}
-
+// loadingManager.onStart = () =>{
+//     console.log('onStart')
+// }
+// loadingManager.onLoad = () =>{
+//     console.log('onLoad')
+// }
+// loadingManager.onProgress = () =>{
+//     console.log('onProgress')
+// }
+// loadingManager.onError = () =>{
+//     console.log('onError')
+// }
 
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
+// COLOR
 const doorColorTexture = textureLoader.load('/textures/door/basecolor.jpg')
     doorColorTexture.colorSpace = THREE.SRGBColorSpace
+    doorColorTexture.rotation = Math.PI * 0.25
+    doorColorTexture.center.x = 0.5
+    doorColorTexture.center.y = 0.5
 
-const doorAlphaTexture = textureLoader.load('/textures/door/opacity.jpg')
-    doorAlphaTexture.colorSpace = THREE.SRGBColorSpace
+
+// // ALPHA
+// const doorAlphaTexture = textureLoader.load('/textures/door/opacity.jpg')
+//     doorAlphaTexture.colorSpace = THREE.SRGBColorSpace
+// // HEIGHT
+// const doorHeightTexture = textureLoader.load('/textures/door/height.png')
+//     doorHeightTexture.colorSpace = THREE.SRGBColorSpace
+// // NORMAL
+// const doorNormalTexture = textureLoader.load('/textures/door/normal.jpg')
+//     doorNormalTexture.colorSpace = THREE.SRGBColorSpace
+// // ROUGHNESS
+// const doorRoughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
+//     doorRoughnessTexture.colorSpace = THREE.SRGBColorSpace
+// // AMBIENT OCCLUSION
+// const doorAmbientOcclusion = textureLoader.load('/textures/door/ambientOcclusion.jpg')
+// doorAmbientOcclusion.colorSpace = THREE.SRGBColorSpace
 
 
 
@@ -60,10 +78,12 @@ const canvas = document.querySelector('canvas.vite')
 const scene = new THREE.Scene()
 
 
+
 //OBJECT
-/**COLOR**/debugObject.color = "#42c286"
+    /**COLOR**/debugObject.color = "#42c286"
 
 const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2)
+// console.log(geometry.attributes.uv)
 // const material = new THREE.MeshBasicMaterial({color: debugObject.color, wireframe: true})
 const material = new THREE.MeshBasicMaterial({map: doorColorTexture})
 const mesh = new THREE.Mesh(geometry, material)
