@@ -1,121 +1,66 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { Timer } from 'three/addons/misc/Timer.js'
 import GUI from 'lil-gui'
-import gsap from 'gsap'
-
-// DEBUG
-const gui = new GUI({
-    width: 300,
-    title: 'GUI'
-    // closeFolders: true
-})
-// gui.close()
-// gui.hide()
-
-window.addEventListener('keydown', (e) => {
-    if(e.key == 'g'){
-        gui.show(gui._hidden)
-    }
-})
-
-const debugObject = {}
-
-
-
-
-
-// TEXTURES
-const loadingManager = new THREE.LoadingManager()
-
-// loadingManager.onStart = () =>{
-//     console.log('onStart')
-// }
-// loadingManager.onLoad = () =>{
-//     console.log('onLoad')
-// }
-// loadingManager.onProgress = () =>{
-//     console.log('onProgress')
-// }
-// loadingManager.onError = () =>{
-//     console.log('onError')
-// }
-
-const textureLoader = new THREE.TextureLoader(loadingManager)
-
-// COLOR
-const doorColorTexture = textureLoader.load('/textures/door/basecolor.jpg')
-    doorColorTexture.colorSpace = THREE.SRGBColorSpace
-    doorColorTexture.rotation = Math.PI * 0.25
-    doorColorTexture.center.x = 0.5
-    doorColorTexture.center.y = 0.5
-
-
-// // ALPHA
-// const doorAlphaTexture = textureLoader.load('/textures/door/opacity.jpg')
-//     doorAlphaTexture.colorSpace = THREE.SRGBColorSpace
-// // HEIGHT
-// const doorHeightTexture = textureLoader.load('/textures/door/height.png')
-//     doorHeightTexture.colorSpace = THREE.SRGBColorSpace
-// // NORMAL
-// const doorNormalTexture = textureLoader.load('/textures/door/normal.jpg')
-//     doorNormalTexture.colorSpace = THREE.SRGBColorSpace
-// // ROUGHNESS
-// const doorRoughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
-//     doorRoughnessTexture.colorSpace = THREE.SRGBColorSpace
-// // AMBIENT OCCLUSION
-// const doorAmbientOcclusion = textureLoader.load('/textures/door/ambientOcclusion.jpg')
-// doorAmbientOcclusion.colorSpace = THREE.SRGBColorSpace
-
-
-
 
 /**
  * Base
  */
+// Debug
+const gui = new GUI()
+
 // Canvas
 const canvas = document.querySelector('canvas.vite')
+
 // Scene
 const scene = new THREE.Scene()
 
 
 
-//OBJECT
-    /**COLOR**/debugObject.color = "#42c286"
+/**
+ * House
+ */
+// FLOOR
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(20,20),
+    new THREE.MeshStandardMaterial()
+)
+floor.rotation.x = - Math.PI * 0.5
+scene.add(floor)
 
-const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2)
-// console.log(geometry.attributes.uv)
-// const material = new THREE.MeshBasicMaterial({color: debugObject.color, wireframe: true})
-const material = new THREE.MeshBasicMaterial({map: doorColorTexture})
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
+// HOUSE GROUP
+const houseGroup = new THREE.Group()
+scene.add(houseGroup)
+
+    // Walls
+    const walls = new THREE.Mesh(
+        new THREE.BoxGeometry(4, 2.5, 4),
+        new THREE.MeshStandardMaterial()
+    )
+    walls.position.y = 1.25
+    houseGroup.add(walls)
+    // Roof
+    const roof = new THREE.Mesh(
+        new THREE.ConeGeometry(3.5, 1.5, 4),
+        new THREE.MeshStandardMaterial()
+    )
+    roof.position.y = 1.5 / 2 + 2.5
+    roof.rotation.y = Math.PI * 0.25
+    houseGroup.add(roof)
 
 
 
-const cubeGUI = gui.addFolder('Simple_cube')
-// cubeGUI.close()
+/**
+ * Lights
+ */
+// Ambient light
+const ambientLight = new THREE.AmbientLight('#ffffff', 0.5)
+scene.add(ambientLight)
 
-// DEBUG
-cubeGUI.add(mesh.position, 'y', -3, 3, 0.01).name('elevation')
-cubeGUI.add(mesh, 'visible')
-cubeGUI.add(material, 'wireframe')
-// cubeGUI.addColor(debugObject, 'color')
-//     .onFinishChange(()=>
-//     {
-//         material.color.set(debugObject.color)
-//     })
-
-debugObject.spin = () =>{
- gsap.to(mesh.rotation, { y: mesh.rotation.y + Math.PI * 2 })
-}
-cubeGUI.add(debugObject, 'spin')
-
-// debugObject.subdivision = 2
-// cubeGUI.add(debugObject, 'subdivision', 1, 20, 1)
-//     .onFinishChange(()=>{
-//         mesh.geometry.dispose()
-//         mesh.geometry = new THREE.BoxGeometry(1, 1, 1, debugObject.subdivision, debugObject.subdivision, debugObject.subdivision)
-//     })
-
+// Directional light
+const directionalLight = new THREE.DirectionalLight('#ffffff', 1.5)
+directionalLight.position.set(3, 2, -8)
+scene.add(directionalLight)
 
 /**
  * Sizes
@@ -145,9 +90,9 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 1
-camera.position.y = 1
-camera.position.z = 2
+camera.position.x = 4
+camera.position.y = 2
+camera.position.z = 5
 scene.add(camera)
 
 // Controls
@@ -166,11 +111,13 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /**
  * Animate
  */
-const clock = new THREE.Clock()
+const timer = new Timer()
 
 const tick = () =>
 {
-    const elapsedTime = clock.getElapsedTime()
+    // Timer
+    timer.update()
+    const elapsedTime = timer.getElapsed()
 
     // Update controls
     controls.update()
