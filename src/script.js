@@ -24,7 +24,7 @@ const textureLoader = new THREE.TextureLoader()
     /**
      * FLOOR
      */
-    const floorAlphaTexture = textureLoader.load('./floor/alpha.jpg')
+    const floorAlphaTexture = textureLoader.load('./floor/alpha.webp')
     const floorColorTexture = textureLoader.load('./floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_diff_1k.webp')
     const floorARMTexture = textureLoader.load('./floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_arm_1k.webp')
     const floorNormalTexture = textureLoader.load('./floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_nor_gl_1k.webp')
@@ -94,7 +94,7 @@ const textureLoader = new THREE.TextureLoader()
     /**
      * GRAVES
      */
-    const gravesColorTexture = textureLoader.load('./grave/plastered_stone_wall_1k/plastered_stone_wall_diff_1k.jpg')
+    const gravesColorTexture = textureLoader.load('./grave/plastered_stone_wall_1k/plastered_stone_wall_diff_1k.webp')
     const gravesARMTexture = textureLoader.load('./grave/plastered_stone_wall_1k/plastered_stone_wall_arm_1k.webp')
     const gravesNormalTexture = textureLoader.load('./grave/plastered_stone_wall_1k/plastered_stone_wall_nor_gl_1k.webp')
     // Wall ColorSpace
