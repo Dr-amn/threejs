@@ -6,7 +6,7 @@ import GUI from 'lil-gui'
  * Base
  */
 // Debug
-const gui = new GUI()
+// const gui = new GUI()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -18,34 +18,54 @@ const scene = new THREE.Scene()
  * Textures
  */
 const textureLoader = new THREE.TextureLoader()
-
+const particleTexture = textureLoader.load('/textures/particles/2.png')
 
 /**
  * Particles
  */
     //Geometry
     const particlesGeometry = new THREE.BufferGeometry()
-    const count = 500
+    const count = 5000
     const positions = new Float32Array(count * 3)
+    const colors = new Float32Array(count * 3)
 
     for (let i = 0; i < count * 3; i++){
         positions[i] = (Math.random() - 0.5) * 10
+        colors[i] = Math.random()
     }
     
     particlesGeometry.setAttribute(
         'position',
-        new THREE.BufferAttribute(positions, 3)
+        new THREE.BufferAttribute(positions, 3),
     )
     
-
+    particlesGeometry.setAttribute(
+        'color',
+        new THREE.BufferAttribute(colors, 3),
+    )
+    
     //Material
     const particlesMaterial = new THREE.PointsMaterial({
-        size: 0.02,
-        sizeAttenuation: true
+        size: 0.2,
+        sizeAttenuation: true,
+        transparent: true,
+        alphaMap: particleTexture,
+        // alphaTest: 0.001
+        // depthTest: false
+        depthWrite: false,
+        // blending: THREE.AdditiveBlending,
+        vertexColors: true
     })
+
     //Points
     const particles = new THREE.Points(particlesGeometry, particlesMaterial)
     scene.add(particles)
+    //Cube
+    const cube = new THREE.Mesh(
+        new THREE.BoxGeometry(),
+        new THREE.MeshBasicMaterial()
+    )
+    scene.add(cube)
 
 /**
  * Sizes
@@ -99,6 +119,10 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+
+    // Update particles
+    // particles.rotation.y = elapsedTime * 1
+    
 
     // Update controls
     controls.update()
