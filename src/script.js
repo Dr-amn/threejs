@@ -33,7 +33,7 @@ const parameters = {
     randomness: 0.02,
     randomnessPower: 3,
     insideColor: '#ff6030',
-    outsideColor: '1b3984'
+    outsideColor: '#1b3984'
 }
 
 let galaxyGeometry = null
@@ -56,6 +56,8 @@ const generateGalaxy = () =>{
     const colorInside = new THREE.Color(parameters.insideColor)
     const colorOutside = new THREE.Color(parameters.outsideColor)
 
+
+
         for(let i = 0; i < parameters.count; i++){
             const i3 = i * 3
             //POSITION
@@ -74,12 +76,14 @@ const generateGalaxy = () =>{
                 positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * galaxyRadius + randomZ
             
             //COLORS
+            const mixedColor = colorInside.clone()
+            mixedColor.lerp(colorOutside, galaxyRadius / parameters.radius)
                 // R
-                colors[i3] = 1
+                colors[i3] = mixedColor.r
                 // G
-                colors[i3 + 1] = 0
+                colors[i3 + 1] = mixedColor.g
                 // B
-                colors[i3 + 2] = 0
+                colors[i3 + 2] = mixedColor.b
 
         }
 
@@ -99,7 +103,6 @@ const generateGalaxy = () =>{
         sizeAttenuation: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        color: '#ff5588',
         vertexColors: true
     })
 
