@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
-import CANNON from 'cannon'
+import * as CANNON from 'cannon-es'
 
 console.log(CANNON)
 
@@ -9,11 +9,32 @@ console.log(CANNON)
  * Debug
  */
 const gui = new GUI()
-const debugObject = {}
-debugObject.createSphere = () =>{
-    createSphere(0.5, {x: 0, y: 3, z: 0})
-}
+
+    const debugObject = {}
+    // GUI spehre creation
+    debugObject.createSphere = () =>{
+        createSphere(
+                       Math.random() * 0.5,
+                        {
+                            x: Math.random() - 0.5 * 3,
+                            y: 3,
+                            z: Math.random() - 0.5 * 3
+                        }
+                    )
+                }
+    // GUI RESET btn
+    debugObject.reset = () =>{
+        for(const object of objectsToUpdate){
+            object.body.removeEventListener('collide', playHitSound)
+            world.remove(object.body)
+            scene.remove(object.mesh)
+        }
+        // Resets the "objectsToUpdate array"
+        objectsToUpdate.splice(0, objectsToUpdate.length)
+    }
+
 gui.add(debugObject, 'createSphere')
+gui.add(debugObject, 'reset')
 
 /**
  * Base
@@ -23,6 +44,47 @@ const canvas = document.querySelector('canvas.vite')
 
 // Scene
 const scene = new THREE.Scene()
+
+
+/**
+ * Sounds
+ */
+const hitSound = new Audio('/sounds/hit.mp3')
+const playHitSound = (collision) =>{
+    const imapctStrenght = collision.contact.getImpactVelocityAlongNormal()
+
+    if(imapctStrenght > 1.5){
+        hitSound.volume = Math.random()
+        hitSound.currentTime = 0
+        hitSound.play()
+    }
+    // if(imapctStrenght > 1.0){
+    //     hitSound.volume = 0.25
+    //     hitSound.currentTime = 0
+    //     hitSound.play()
+    // }
+    // if(imapctStrenght > 1.5){
+    //     hitSound.volume = 0.4
+    //     hitSound.currentTime = 0
+    //     hitSound.play()
+    // }
+    // if(imapctStrenght > 2){
+    //     hitSound.volume = 0.65
+    //     hitSound.currentTime = 0
+    //     hitSound.play()
+    // }
+    // if(imapctStrenght > 3){
+    //     hitSound.volume = 0.8
+    //     hitSound.currentTime = 0
+    //     hitSound.play()
+    // }
+    // if(imapctStrenght > 4){
+    //     hitSound.volume = 1
+    //     hitSound.currentTime = 0
+    //     hitSound.play()
+    // }
+
+}
 
 /**
  * Textures
@@ -42,6 +104,14 @@ const environmentMapTexture = cubeTextureLoader.load([
  * Physics
  */
 const world = new CANNON.World()
+
+/* By default, CANNON-js is calculating if an object collide with every other object of the scene which is very bad for performance.
+That method helps to divide the scene in chunks, so the objects calculation, one towards another, is being limited to the neighbor chunks.
+WARNING, very fast objects, could be not registered = no collision 
+---->>>*/world.broadphase = new CANNON.SAPBroadphase(world)
+/* This method allows the objects that are moving at a cerain, low speed, to not be calculated anymore -> PERFORMANCE = STONKS
+---->>>*/world.allowSleep = true
+
 world.gravity.set(0, -9.82, 0)
 
     //Materials
@@ -157,20 +227,24 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  * Utils
  */
 const objectsToUpdate = []
-const createSphere = (radius, position) =>{
+
+const sphereGeometry = new THREE.SphereGeometry(1, 20, 20)
+const sphereMaterial = new THREE.MeshStandardMaterial({
+    metalness: 0.6,
+    roughness: 0.4,
+    envMap: environmentMapTexture
+})
+
+const createSphere = (radius, position) =>
+    {
     // Three.js mesh
-    const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(radius, 20, 20),
-        new THREE.MeshStandardMaterial({
-            metalness: 0.6,
-            roughness: 0.4,
-            envMap: environmentMapTexture
-        })
-    )
+    const mesh = new THREE.Mesh(sphereGeometry, sphereMaterial)
+    mesh.scale.set(radius, radius, radius)
     mesh.castShadow = true
     mesh.position.copy(position)
     scene.add(mesh)
 
+    
     // Cannon.js body
     const shape = new CANNON.Sphere(radius)
     const body = new CANNON.Body({
@@ -180,6 +254,7 @@ const createSphere = (radius, position) =>{
         material: defaultMaterial
     })
     body.position.copy(position)
+    body.addEventListener('collide', playHitSound)
     world.addBody(body)
 
     // Save in object to update
@@ -210,6 +285,7 @@ const tick = () =>
 
     for(const object of objectsToUpdate){
         object.mesh.position.copy(object.body.position)
+        object.mesh.quaternion.copy(object.body.quaternion)
     }
 
     // Update controls
