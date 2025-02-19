@@ -39,7 +39,7 @@ scene.add(object1, object2, object3)
 /**
  * Raycaster
  */
-
+const raycaster = new THREE.Raycaster()
 
 /**
  * Sizes
