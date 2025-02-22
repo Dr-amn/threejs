@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import GUI from 'lil-gui'
 
 /**
@@ -15,8 +16,19 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
+ * Lights
+ */
+const ambientLight = new THREE.AmbientLight('#ffffff', 1)
+scene.add(ambientLight)
+
+const directionalLight = new THREE.DirectionalLight('#ffffff', 1.5)
+directionalLight.position.set(1, 2, 3)
+scene.add(directionalLight)
+
+/**
  * Objects
  */
+
 const object1 = new THREE.Mesh(
     new THREE.SphereGeometry(0.5, 16, 16),
     new THREE.MeshBasicMaterial({ color: '#ff0000' })
@@ -39,7 +51,12 @@ scene.add(object1, object2, object3)
 /**
  * Raycaster
  */
+    // Matrix World
+    // object1.updateMatrixWorld()
+    // object2.updateMatrixWorld()
+    // object3.updateMatrixWorld()
 const raycaster = new THREE.Raycaster()
+
 
 /**
  * Sizes
@@ -65,7 +82,29 @@ window.addEventListener('resize', () =>
 })
 
 /**
- * Camera
+ * Mouse Hovering
+ */
+const mouse = new THREE.Vector2()
+
+window.addEventListener('mousemove', (event) =>{
+    mouse.x = event.clientX / sizes.width * 2 - 1
+    mouse.y = -(event.clientY / sizes.height) * 2 + 1
+})
+
+window.addEventListener('click', ()=>{
+    if(currentIntersect){
+        if(currentIntersect.object === object1){
+            console.log('sphere 1 click')
+        }else if(currentIntersect.object === object2){
+            console.log('sphere 2 click')
+        }else{
+            console.log('sphere 3 click')
+        }
+    }
+})
+
+/**
+ * Camera 
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
@@ -86,13 +125,88 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /**
+ * Model import
+ */
+const gltfLoader = new GLTFLoader()
+
+let modelDuck = null
+gltfLoader.load(
+    './models/Duck/glTF-Binary/Duck.glb',
+    (gltf) => {
+        modelDuck = gltf.scene
+        scene.add(modelDuck)
+    }
+)
+
+/**
  * Animate
  */
 const clock = new THREE.Clock()
 
+let currentIntersect = null
+
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+
+    // Animate Objects
+    object1.position.y = Math.sin(elapsedTime * 0.75)
+    object2.position.y = Math.sin(elapsedTime * 1.2)
+    object3.position.y = Math.sin(elapsedTime * 1.5)
+
+            // //Cast a ray
+            raycaster.setFromCamera(mouse, camera)
+            
+            const objectsRayed = [object1, object2, object3]
+            const intersects = raycaster.intersectObjects(objectsRayed)
+            
+            objectsRayed.forEach(objectRayed => {
+                objectRayed.material.color.set('#ff0000')
+            })
+
+            intersects.forEach(intersect => {
+                intersect.object.material.color.set('#0000ff')
+            })
+
+            // MOUSE ENTER AND LEAVE
+            if (intersects.length) {
+                if(!currentIntersect) {
+                    console.log('mouse enter')
+                }
+                currentIntersect = intersects[0]
+                
+            } else {
+                if(currentIntersect) {
+                    console.log('mouse leave')
+                }
+                currentIntersect = null
+            }
+
+            // Duck hover
+            if(modelDuck){
+                const duckIntersects = raycaster.intersectObject(modelDuck)
+                if(duckIntersects.length){
+                    modelDuck.scale.set(1.2, 1.2, 1.2)
+                }else{
+                    modelDuck.scale.set(1, 1, 1)
+                }
+            }
+
+            // const rayOrigin = new THREE.Vector3(-3, 0, 0)
+            // const rayDirection = new THREE.Vector3(1, 0, 0)
+            // rayDirection.normalize()
+
+            // raycaster.set(rayOrigin, rayDirection)
+
+            // const objectsRayed = [object1, object2, object3]
+            // const intersects = raycaster.intersectObjects(objectsRayed)
+
+            // objectsRayed.forEach(objectRayed => {
+            //     objectRayed.material.color.set('#ff0000')
+            // });
+            // intersects.forEach(intersect => {
+            //     intersect.object.material.color.set('#0000ff')
+            // });
 
     // Update controls
     controls.update()
