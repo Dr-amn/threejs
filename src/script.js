@@ -1,6 +1,13 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+
+/**
+ * Loaders
+ */
+const gltfLoader = new GLTFLoader()
+const cubeEnvironmentLoader = new THREE.CubeTextureLoader()
 
 /**
  * Base
@@ -15,14 +22,57 @@ const canvas = document.querySelector('canvas.vite')
 const scene = new THREE.Scene()
 
 /**
+ * Environment map
+ */
+scene.environmentIntensity = 1
+scene.backgroundBlurriness = 0
+scene.backgroundIntensity = 1
+// scene.backgroundRotation.x = 1
+// scene.environmentRotation.x = 1
+
+
+gui.add(scene, 'environmentIntensity', 0, 10, 0.001)
+gui.add(scene, 'backgroundBlurriness', 0, 1, 0.001)
+gui.add(scene, 'backgroundIntensity', 0, 10, 0.001)
+
+//LDR (low dynamic range) cube texture
+const environmentMap = cubeEnvironmentLoader.load([
+    '/environmentMaps/2/px.png',
+    '/environmentMaps/2/nx.png',
+    '/environmentMaps/2/py.png',
+    '/environmentMaps/2/ny.png',
+    '/environmentMaps/2/pz.png',
+    '/environmentMaps/2/nz.png'
+])
+
+scene.environment = environmentMap
+scene.background = environmentMap
+
+/**
  * Torus Knot
  */
 const torusKnot = new THREE.Mesh(
     new THREE.TorusKnotGeometry(1, 0.4, 100, 16),
-    new THREE.MeshBasicMaterial()
+    new THREE.MeshStandardMaterial({
+        roughness: 0.3,
+        metalness: 1,
+        color: 0xaaaaaa
+    })
 )
 torusKnot.position.y = 4
+torusKnot.position.x = -6
 scene.add(torusKnot)
+
+/**
+ * Models
+ */
+gltfLoader.load(
+    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    (gltf) =>{
+        gltf.scene.scale.set(10, 10, 10)
+        scene.add(gltf.scene)
+    }
+)
 
 /**
  * Sizes
@@ -46,6 +96,12 @@ window.addEventListener('resize', () =>
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
+
+/**
+ * Lights
+ */
+// const ambientLight = new THREE.AmbientLight('#ffffff', 3)
+// scene.add(ambientLight)
 
 /**
  * Camera
