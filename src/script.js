@@ -1,121 +1,75 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
-import gsap from 'gsap'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 
-// DEBUG
-const gui = new GUI({
-    width: 300,
-    title: 'GUI'
-    // closeFolders: true
-})
-// gui.close()
-// gui.hide()
-
-window.addEventListener('keydown', (e) => {
-    if(e.key == 'g'){
-        gui.show(gui._hidden)
-    }
-})
-
-const debugObject = {}
-
-
-
-
-
-// TEXTURES
-const loadingManager = new THREE.LoadingManager()
-
-// loadingManager.onStart = () =>{
-//     console.log('onStart')
-// }
-// loadingManager.onLoad = () =>{
-//     console.log('onLoad')
-// }
-// loadingManager.onProgress = () =>{
-//     console.log('onProgress')
-// }
-// loadingManager.onError = () =>{
-//     console.log('onError')
-// }
-
-const textureLoader = new THREE.TextureLoader(loadingManager)
-
-// COLOR
-const doorColorTexture = textureLoader.load('/textures/door/basecolor.jpg')
-    doorColorTexture.colorSpace = THREE.SRGBColorSpace
-    doorColorTexture.rotation = Math.PI * 0.25
-    doorColorTexture.center.x = 0.5
-    doorColorTexture.center.y = 0.5
-
-
-// // ALPHA
-// const doorAlphaTexture = textureLoader.load('/textures/door/opacity.jpg')
-//     doorAlphaTexture.colorSpace = THREE.SRGBColorSpace
-// // HEIGHT
-// const doorHeightTexture = textureLoader.load('/textures/door/height.png')
-//     doorHeightTexture.colorSpace = THREE.SRGBColorSpace
-// // NORMAL
-// const doorNormalTexture = textureLoader.load('/textures/door/normal.jpg')
-//     doorNormalTexture.colorSpace = THREE.SRGBColorSpace
-// // ROUGHNESS
-// const doorRoughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
-//     doorRoughnessTexture.colorSpace = THREE.SRGBColorSpace
-// // AMBIENT OCCLUSION
-// const doorAmbientOcclusion = textureLoader.load('/textures/door/ambientOcclusion.jpg')
-// doorAmbientOcclusion.colorSpace = THREE.SRGBColorSpace
-
-
-
+/**
+ * Loaders
+ */
+const gltfLoader = new GLTFLoader()
+const rgbeLoader = new RGBELoader()
 
 /**
  * Base
  */
+// Debug
+const gui = new GUI()
+
 // Canvas
 const canvas = document.querySelector('canvas.vite')
+
 // Scene
 const scene = new THREE.Scene()
 
-
-
-//OBJECT
-    /**COLOR**/debugObject.color = "#42c286"
-
-const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2)
-// console.log(geometry.attributes.uv)
-// const material = new THREE.MeshBasicMaterial({color: debugObject.color, wireframe: true})
-const material = new THREE.MeshBasicMaterial({map: doorColorTexture})
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
-
-
-
-const cubeGUI = gui.addFolder('Simple_cube')
-// cubeGUI.close()
-
-// DEBUG
-cubeGUI.add(mesh.position, 'y', -3, 3, 0.01).name('elevation')
-cubeGUI.add(mesh, 'visible')
-cubeGUI.add(material, 'wireframe')
-// cubeGUI.addColor(debugObject, 'color')
-//     .onFinishChange(()=>
-//     {
-//         material.color.set(debugObject.color)
-//     })
-
-debugObject.spin = () =>{
- gsap.to(mesh.rotation, { y: mesh.rotation.y + Math.PI * 2 })
+/**
+ * Update all materials
+ */
+const updateAllMaterials = () =>
+{
+    scene.traverse((child) =>
+    {
+        if(child.isMesh)
+        {
+            // Activate shadow here
+        }
+    })
 }
-cubeGUI.add(debugObject, 'spin')
 
-// debugObject.subdivision = 2
-// cubeGUI.add(debugObject, 'subdivision', 1, 20, 1)
-//     .onFinishChange(()=>{
-//         mesh.geometry.dispose()
-//         mesh.geometry = new THREE.BoxGeometry(1, 1, 1, debugObject.subdivision, debugObject.subdivision, debugObject.subdivision)
-//     })
+/**
+ * Environment map
+ */
+// Intensity
+scene.environmentIntensity = 1
+gui
+    .add(scene, 'environmentIntensity')
+    .min(0)
+    .max(10)
+    .step(0.001)
 
+// HDR (RGBE) equirectangular
+rgbeLoader.load('/environmentMaps/0/2k.hdr', (environmentMap) =>
+{
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+
+    scene.background = environmentMap
+    scene.environment = environmentMap
+})
+
+/**
+ * Models
+ */
+// Helmet
+gltfLoader.load(
+    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    (gltf) =>
+    {
+        gltf.scene.scale.set(10, 10, 10)
+        scene.add(gltf.scene)
+
+        updateAllMaterials()
+    }
+)
 
 /**
  * Sizes
@@ -145,13 +99,12 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 1
-camera.position.y = 1
-camera.position.z = 2
+camera.position.set(4, 5, 4)
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
+controls.target.y = 3.5
 controls.enableDamping = true
 
 /**
@@ -166,12 +119,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /**
  * Animate
  */
-const clock = new THREE.Clock()
-
 const tick = () =>
 {
-    const elapsedTime = clock.getElapsedTime()
-
     // Update controls
     controls.update()
 
