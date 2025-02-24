@@ -2,12 +2,16 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
+import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js'
 
 /**
  * Loaders
  */
 const gltfLoader = new GLTFLoader()
 const cubeEnvironmentLoader = new THREE.CubeTextureLoader()
+const rgbeLoader = new RGBELoader()
+// const exrLoader = new EXRLoader()
 
 /**
  * Base
@@ -34,19 +38,40 @@ scene.backgroundIntensity = 1
 gui.add(scene, 'environmentIntensity', 0, 10, 0.001)
 gui.add(scene, 'backgroundBlurriness', 0, 1, 0.001)
 gui.add(scene, 'backgroundIntensity', 0, 10, 0.001)
+gui.add(scene.backgroundRotation, 'y', 0, Math.PI *2, 0.001).name('backgroundRotationY')
+gui.add(scene.environmentRotation, 'y', 0, Math.PI *2, 0.001).name('environmentRotationY')
 
 //LDR (low dynamic range) cube texture
-const environmentMap = cubeEnvironmentLoader.load([
-    '/environmentMaps/2/px.png',
-    '/environmentMaps/2/nx.png',
-    '/environmentMaps/2/py.png',
-    '/environmentMaps/2/ny.png',
-    '/environmentMaps/2/pz.png',
-    '/environmentMaps/2/nz.png'
-])
+// const environmentMap = cubeEnvironmentLoader.load([
+//     '/environmentMaps/2/px.png',
+//     '/environmentMaps/2/nx.png',
+//     '/environmentMaps/2/py.png',
+//     '/environmentMaps/2/ny.png',
+//     '/environmentMaps/2/pz.png',
+//     '/environmentMaps/2/nz.png'
+// ])
 
-scene.environment = environmentMap
-scene.background = environmentMap
+// scene.environment = environmentMap
+// scene.background = environmentMap
+
+// HDR (RGBE) equirectangular SKYBOX
+rgbeLoader.load('/environmentMaps/1/2k.hdr', (environmentMap) =>{
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+    scene.environment = environmentMap
+
+    // Skybox
+    const skybox = new GroundedSkybox(environmentMap, 15 /** Height */, 70 /** Radius */) 
+    skybox.position.y = 15
+    scene.add(skybox)
+})
+
+// // HDR (EXR) equirectangular
+// exrLoader.load('/environmentMaps/nvidiaCanvas-4k.exr', (environmentMap) =>{
+//     environmentMap.mapping = THREE.EquirectangularReflectionMapping
+//     scene.background = environmentMap
+//     scene.environment = environmentMap
+// })
+
 
 /**
  * Torus Knot
