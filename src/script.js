@@ -9,6 +9,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
  */
 const gltfLoader = new GLTFLoader()
 const rgbeLoader = new RGBELoader()
+const textureLoader = new THREE.TextureLoader
 
 /**
  * Base
@@ -64,7 +65,7 @@ rgbeLoader.load('/environmentMaps/0/2k.hdr', (environmentMap) =>
 */
     //Directional
     const directionalLight = new THREE.DirectionalLight('#ffffff', 5)
-    directionalLight.position.set(-7, 8, 4.5)
+    directionalLight.position.set(-4, 8, 4.5)
     scene.add(directionalLight)
 //GUI Light
 gui.add(directionalLight, 'intensity', 0, 10, 0.001).name('directional intensity')
@@ -75,6 +76,13 @@ gui.add(directionalLight.position, 'z', -15, 15, 0.001).name('directional-Z')
     directionalLight.castShadow = true
     directionalLight.shadow.camera.far = 15
     directionalLight.shadow.mapSize.set(512, 512)
+    directionalLight.shadow.normalBias = 0.027
+    directionalLight.shadow.bias = -0.004
+    directionalLight.shadow.mapSize.set(512, 512)
+        // GUI Shadow BIAS
+        gui.add(directionalLight.shadow, 'normalBias', -0.05, 0.05, 0.001)
+        gui.add(directionalLight.shadow, 'bias', -0.05, 0.05, 0.001)
+
     // //Helper
     // const directionalLightHelper = new THREE.CameraHelper(directionalLight.shadow.camera)
     // scene.add(directionalLightHelper)
@@ -88,16 +96,77 @@ gui.add(directionalLight.position, 'z', -15, 15, 0.001).name('directional-Z')
  * Models
  */
 // Helmet
+    // gltfLoader.load(
+    //     '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    //     (gltf) =>
+    //     {
+    //         gltf.scene.scale.set(10, 10, 10)
+    //         scene.add(gltf.scene)
+
+    //         updateAllMaterials()
+    //     }
+    // )
+
+// Burger
 gltfLoader.load(
-    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    '/models/hamburger.glb',
     (gltf) =>
     {
-        gltf.scene.scale.set(10, 10, 10)
+        gltf.scene.scale.set(0.4, 0.4, 0.4)
+        gltf.scene.position.set(0, 2.5, 0)
         scene.add(gltf.scene)
 
         updateAllMaterials()
     }
 )
+
+
+/**
+ * Floor
+ */
+const floorColorTexture = textureLoader.load('/textures/wood_cabinet_worn_long/wood_cabinet_worn_long_diff_1k.jpg')
+const floorNormalTexture = textureLoader.load('/textures/wood_cabinet_worn_long/wood_cabinet_worn_long_nor_gl_1k.png')
+const floorARM = textureLoader.load('/textures/wood_cabinet_worn_long/wood_cabinet_worn_long_arm_1k.jpg')
+
+floorColorTexture.colorSpace = THREE.SRGBColorSpace
+
+
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(8, 8),
+    new THREE.MeshStandardMaterial({
+        map: floorColorTexture,
+        normalMap: floorNormalTexture,
+        aoMap: floorARM,
+        roughnessMap: floorARM,
+        metalnessMap: floorARM
+    })
+)
+floor.rotation.x = - Math.PI * 0.5
+scene.add(floor)
+
+
+/**
+ * Wall
+ */
+const wallColorTexture = textureLoader.load('/textures/castle_brick_broken_06/castle_brick_broken_06_diff_1k.jpg')
+const wallNormalTexture = textureLoader.load('/textures/castle_brick_broken_06/castle_brick_broken_06_nor_gl_1k.png')
+const wallARM = textureLoader.load('/textures/castle_brick_broken_06/castle_brick_broken_06_arm_1k.jpg')
+
+wallColorTexture.colorSpace = THREE.SRGBColorSpace
+
+const wall = new THREE.Mesh(
+    new THREE.PlaneGeometry(8, 8),
+    new THREE.MeshStandardMaterial({
+        map: wallColorTexture,
+        normalMap: wallNormalTexture,
+        aoMap: wallARM,
+        roughnessMap: wallARM,
+        metalnessMap: wallARM
+    })
+)
+wall.position.y = 4
+wall.position.z -= 4
+scene.add(wall)
 
 
 /**
