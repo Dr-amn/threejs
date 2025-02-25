@@ -29,9 +29,12 @@ const updateAllMaterials = () =>
 {
     scene.traverse((child) =>
     {
-        if(child.isMesh)
+        if(child.isMesh && child.material.isMeshStandardMaterial)
         {
-            // Activate shadow here
+            child.material.envMapIntensity = scene.environmentIntensity
+
+            child.castShadow = true
+            child.receiveShadow = true
         }
     })
 }
@@ -57,6 +60,31 @@ rgbeLoader.load('/environmentMaps/0/2k.hdr', (environmentMap) =>
 })
 
 /**
+ * Ligths
+*/
+    //Directional
+    const directionalLight = new THREE.DirectionalLight('#ffffff', 5)
+    directionalLight.position.set(-7, 8, 4.5)
+    scene.add(directionalLight)
+//GUI Light
+gui.add(directionalLight, 'intensity', 0, 10, 0.001).name('directional intensity')
+gui.add(directionalLight.position, 'x', -15, 15, 0.001).name('directional-X')
+gui.add(directionalLight.position, 'y', -15, 15, 0.001).name('directional-Y')
+gui.add(directionalLight.position, 'z', -15, 15, 0.001).name('directional-Z')
+    //Shadows
+    directionalLight.castShadow = true
+    directionalLight.shadow.camera.far = 15
+    directionalLight.shadow.mapSize.set(512, 512)
+    // //Helper
+    // const directionalLightHelper = new THREE.CameraHelper(directionalLight.shadow.camera)
+    // scene.add(directionalLightHelper)
+        //Helper Camera Target
+        directionalLight.target.position.set(0, 4, 0)
+        directionalLight.target.updateWorldMatrix()
+        // scene.add(directionalLight.target) /* This or the one above is ok */
+
+
+/**
  * Models
  */
 // Helmet
@@ -70,6 +98,7 @@ gltfLoader.load(
         updateAllMaterials()
     }
 )
+
 
 /**
  * Sizes
@@ -111,7 +140,8 @@ controls.enableDamping = true
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas: canvas,
+    antialias: true
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -128,6 +158,13 @@ gui.add(renderer, 'toneMapping',{
     ACESFilmic: THREE.ACESFilmicToneMapping
 })
 gui.add(renderer,'toneMappingExposure', 0, 10, 0.001)
+
+/**
+ * Shadows
+ */
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFShadowMap
+
 /**
  * Animate
  */
