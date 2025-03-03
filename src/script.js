@@ -206,15 +206,44 @@
 
 // A class
 class Robot {
+    constructor(name, legs){
+        this.robotName = name
+        this.robotLegs = legs
+
+        console.log(`I am ${this.robotName}.`)
+
+        // this.sayHi()
+        
+    }
     // A function in a class is called a "method"
     sayHi(){
-        console.log('Hello')
+        console.log(`Hello ! My name is ${this.robotName}. I have ${this.robotLegs} legs.`)
     }
 }
 
-const wallE = new Robot()
-const ultron = new Robot()
-const astroBoy = new Robot()
+class FlyingRobot extends Robot{
+    // you can't just overwrite a constructor, you have to provide parameters in super first
+    constructor(name, legs){
+        super(name, legs)
+        super.sayHi()
+    }
 
-ultron.sayHi()
-astroBoy.sayHi()
+    sayHi(){
+        console.log(`Hello ! My name is ${this.robotName}. I am a flying robot.`)
+    }
+    takeOff(){
+        console.log(`Have a good flight ${this.robotName}`)
+    }
+    land(){
+        console.log(`Welcome back ${this.robotName}`)
+    }
+}
+
+
+    // and these are instnaces of a class
+const wallE = new Robot('Wall-E', 0)
+const ultron = new FlyingRobot('Ultron', 2)
+const astroBoy = new FlyingRobot('Astro Boy', 2)
+
+// wallE.sayHi()
+astroBoy.takeOff()
